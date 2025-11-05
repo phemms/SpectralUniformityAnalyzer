@@ -1,41 +1,37 @@
 # Spectral Uniformity Analyzer
 
-**Production-grade QC system for optical waveguide color uniformity analysis**
+**Color uniformity analysis for optical waveguides and photonic devices**
 
-A comprehensive Python toolkit for analyzing spectral uniformity in photonic devices using industry-standard colorimetry (CIE 1931, CIELAB, CIEDE2000). Implements complete quality control workflows with full traceability for manufacturing environments.
-
-[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+A Python toolkit for analyzing spectral uniformity using CIE colorimetry standards (CIE 1931, CIELAB, CIEDE2000). Implements QC workflows with spatial analysis, pass/fail criteria, and measurement traceability.
 
 ---
 
 ## 🎯 Project Overview
 
-This system analyzes **color uniformity** across optical devices by converting spectral measurements to perceptually-uniform color spaces and calculating spatial color variations. Designed for manufacturing QC of waveguides, displays, LEDs, and other photonic components.
+This tool analyzes color uniformity across optical devices by converting spectral measurements to perceptually-uniform color spaces and calculating spatial variations. Built for QC of waveguides, displays, and other photonic components.
 
 ### Key Features
 
-- ✅ **CIE 1931 Color Science** - Official color matching functions, XYZ tristimulus values
-- ✅ **Advanced Colorimetry** - CIELAB color space, CIEDE2000 color difference formula
-- ✅ **Spatial Analysis** - 2D uniformity mapping with interpolation
-- ✅ **QC Decision System** - Pass/fail criteria with detailed failure reporting
-- ✅ **Full Traceability** - Operator, instrument S/N, calibration certificates, environmental data
-- ✅ **Professional Visualization** - 5 plot types including CIE chromaticity diagrams, heatmaps, histograms
-- ✅ **Production Ready** - Complete metadata tracking for ISO 17025 / FDA 21 CFR Part 11 compliance
+- **CIE 1931 Color Science** - Color matching functions, XYZ tristimulus values.
+- **Colorimetry** - CIELAB color space, CIEDE2000 color difference calculation.
+- **Spatial Analysis** - 2D uniformity mapping with interpolation.
+- **QC System** - Pass/fail criteria with failure reporting.
+- **Traceability** - Operator, instrument info, calibration data, environmental conditions.
+- **Visualization** - Chromaticity diagrams, heatmaps, histograms, spectral profiles.
 
 ---
 
 ## 🖼️ Example Outputs
 
-The system generates 5 types of professional visualizations:
+The tool generates 5 types of visualizations:
 
-1. **Uniformity Heatmap** - 2D spatial distribution of color differences with spec limit contours
-2. **Complete QC Report** - Single-page summary with spatial map, spectra, statistics, and pass/fail decision
-3. **Chromaticity Diagram** - CIE 1931 diagram showing color distribution (tight cluster = good uniformity)
-4. **ΔE Distribution** - Histogram and box plot with color-coded pass/fail zones
-5. **Spectral Profiles** - Wavelength measurements with mean and ±1σ bands
+1. **Uniformity Heatmap** - 2D spatial distribution of color differences.
+2. **QC Report** - Single-page summary with spatial map, spectra, statistics, and pass/fail.
+3. **Chromaticity Diagram** - CIE 1931 diagram showing color distribution.
+4. **ΔE Distribution** - Histogram and box plot.
+5. **Spectral Profiles** - Wavelength measurements with mean and standard deviation bands.
 
-Run `python end_to_end_analysis.py` to generate example outputs.
+Run `python end_to_end_analysis.py` to generate examples.
 
 ---
 
@@ -62,13 +58,13 @@ pip install -r requirements.txt
 python end_to_end_analysis.py
 ```
 
-This generates a comprehensive analysis of 3 quality levels (excellent, good, defect):
-- 3 CSV data files with synthetic waveguide measurements
-- 15 professional visualization plots (5 types × 3 quality levels)
-- Complete QC reports with pass/fail decisions
-- Statistical analysis and traceability reports
+This runs analysis on 3 quality levels (excellent, good, defect):
+- 3 CSV data files with synthetic waveguide measurements.
+- 15 visualization plots (5 types × 3 quality levels).
+- QC reports with pass/fail decisions.
+- Statistical analysis.
 
-**Runtime:** ~30 seconds for complete analysis
+**Runtime:** ~30 seconds.
 
 ---
 
@@ -133,38 +129,38 @@ Std ΔE: 0.50
 
 ### Color Science Implementation
 
-- **CIE 1931 2° Standard Observer** - Interpolated to 1nm resolution (380-780nm)
-- **Color Matching Functions** - Official x̄(λ), ȳ(λ), z̄(λ) values
-- **XYZ Tristimulus Values** - Numerical integration via trapezoidal rule
-- **CIELAB Color Space** - Perceptually uniform, with proper white point normalization
+- **CIE 1931 2° Standard Observer** - Interpolated to 1nm resolution (380-780nm).
+- **Color Matching Functions** - x̄(λ), ȳ(λ), z̄(λ) values.
+- **XYZ Tristimulus Values** - Numerical integration via trapezoidal rule.
+- **CIELAB Color Space** - Perceptually uniform with white point normalization.
 - **ΔE Metrics**:
-  - ΔE*ab - Euclidean distance in Lab space
-  - CIEDE2000 (ΔE00) - State-of-the-art formula with lightness, chroma, and hue weighting
+  - ΔE*ab - Euclidean distance in Lab space.
+  - CIEDE2000 (ΔE00) - Industry standard with lightness, chroma, and hue weighting.
 
 ### Synthetic Data Generator
 
 Simulates realistic waveguide defects:
-- Center-to-edge uniformity gradients
-- Localized defects (contamination, scratches)
-- Wavelength shifts (thickness variations)
-- Interference fringes (thin-film effects)
-- Measurement noise (Gaussian)
+- Center-to-edge uniformity gradients.
+- Localized defects (contamination, scratches).
+- Wavelength shifts (thickness variations).
+- Interference fringes (thin-film effects).
+- Measurement noise (Gaussian).
 
 ### Quality Control Metrics
 
 **Pass/Fail Criteria:**
-- Mean ΔE across surface
-- Maximum ΔE at any point
-- Standard deviation (uniformity requirement)
-- Chromaticity tolerance in xy space
-- Optional lightness (L*) range limits
+- Mean ΔE across surface.
+- Maximum ΔE at any point.
+- Standard deviation (uniformity requirement).
+- Chromaticity tolerance in xy space.
+- Optional lightness (L*) range limits.
 
 **Traceability:**
-- Operator name
-- Instrument model and serial number
-- Calibration date and certificate number
-- Environmental conditions (temperature, humidity)
-- Timestamps (ISO format)
+- Operator name.
+- Instrument model and serial number.
+- Calibration date and certificate number.
+- Environmental conditions (temperature, humidity).
+- Timestamps (ISO format).
 
 ---
 
@@ -185,15 +181,13 @@ SpectralUniformityAnalyzer/
 
 ## 🔬 Background
 
-This project applies advanced colorimetry to manufacturing quality control. The methodology is based on:
-- CIE 1931 color space standards
-- CIE ΔE*ab and CIEDE2000 color difference formulas
-- ISO 17025 measurement traceability requirements
-- Industry best practices for optical device characterization
+This project applies colorimetry to manufacturing quality control. I built it to translate color science knowledge into practical QC tools for optical devices.
 
-**Author Background:** This work builds on previous display color characterization research (2017) using polynomial and masking models for LCD and AMOLED devices. The project applies that colorimetry expertise to photonic device manufacturing QC.
+The methodology comes from working with display color characterization back in 2017, where I used polynomial and masking models for LCD and AMOLED devices. That work focused on how screens reproduce colors. This project takes those same colorimetry principles and applies them to waveguide uniformity analysis - checking if optical components have consistent color transmission across their surface.
 
-**Reference:** *"Colour Characterisation of a LCD and Mobile Display Using Polynomial and Masking Models"* (Mohamed, Balogun, Das 2017) - See `lab project 2.pdf` in repository.
+The implementation uses CIE 1931 color standards and CIEDE2000 color difference calculations, which are industry standards for quantifying color variations that humans can perceive.
+
+**Reference:** The 2017 display work is documented in *"Colour Characterisation of a LCD and Mobile Display Using Polynomial and Masking Models"* (Mohamed, Balogun, Das 2017).
 
 ---
 
@@ -213,24 +207,24 @@ See `requirements.txt` for complete list.
 
 ## 📈 Performance
 
-- **Analysis time:** ~1-2 seconds per device (25 measurement points)
-- **Repeatability:** ΔE std < 0.03 (excellent instrument precision)
-- **Scalability:** Tested up to 100 measurement points (10×10 grid)
+- **Analysis time:** ~1-2 seconds per device (25 measurement points).
+- **Repeatability:** ΔE std < 0.03 (excellent instrument precision).
+- **Scalability:** Tested up to 100 measurement points (10×10 grid).
 
 ---
 
 ## 🎓 Use Cases
 
-- **Manufacturing QC:** Waveguide, LED, display uniformity testing
-- **Research:** Spatial color characterization of photonic devices
-- **Calibration:** Display color accuracy verification
-- **Education:** Teaching CIE color science and colorimetry
+- **Manufacturing QC:** Waveguide, LED, display uniformity testing.
+- **Research:** Spatial color characterization of photonic devices.
+- **Calibration:** Display color accuracy verification.
+- **Education:** Teaching CIE color science and colorimetry.
 
 ---
 
 ## 📝 License
 
-MIT License - See LICENSE file for details
+MIT License - See LICENSE file for details.
 
 ---
 
@@ -238,15 +232,15 @@ MIT License - See LICENSE file for details
 
 **Olufemi Balogun**
 
-- 📧 Email: [phemmsbalo@gmail.com]
+- 📧 Email: phemmsbalo@gmail.com.
 
 ---
 
 ## 🙏 Acknowledgments
 
-- CIE 1931 color matching functions from official CIE standards
-- CIEDE2000 formula implementation based on published specifications
-- Methodology inspired by display color characterization work: *"Colour Characterisation of a LCD and Mobile Display Using Polynomial and Masking Models"* (Balogun, 2017)
+- CIE color matching functions and standards from CIE publications.
+- CIEDE2000 implementation based on published specifications.
+- Methodology builds on display color characterization work from 2017.
 
 ---
 
@@ -270,5 +264,5 @@ Result: FAIL - Defect detected at position (7.5, 2.5) mm
 
 ---
 
-*Built with Python, NumPy, SciPy, and Matplotlib. Production-ready code for photonics manufacturing QC.*
+*Built with Python, NumPy, SciPy, and Matplotlib.*
 
