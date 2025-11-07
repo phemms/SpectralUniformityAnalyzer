@@ -23,12 +23,32 @@ Date: October 2025
 import numpy as np
 import matplotlib.pyplot as plt
 from datetime import datetime
+import os
 
 # Import our modules
 from data_generator import WaveguideDataGenerator
 from color_converter import ColorConverter
 from uniformity_analyzer import UniformityAnalyzer, MeasurementMetadata, SpecLimits
 from visualizer import UniformityVisualizer
+from report_generator import UniformityReportGenerator
+
+# Configuration - Metric selection and output directories
+METRIC_TYPE = "cie2000"  # Options: "deltaEab" or "cie2000" (currently using CIEDE2000)
+
+# Data source configuration
+DATA_SOURCE = "synthetic"  # Options: "synthetic" or "file"
+CUSTOM_DATA_FILE = "path/to/your/measurement_data.csv"  # Full or relative path to your CSV file
+
+# Examples:
+# CUSTOM_DATA_FILE = "/Users/john/data/waveguide_measurements.csv"  # Absolute path
+# CUSTOM_DATA_FILE = "../measurements/today/session1.csv"           # Relative path
+# CUSTOM_DATA_FILE = "C:/data/spectrometer_output.csv"              # Windows path
+# CUSTOM_DATA_FILE = "sample_data/example_custom_data.csv"          # Test with example data
+
+# Output directories (automatically set based on metric)
+OUTPUT_DATA_DIR = "sample_data/"
+OUTPUT_IMAGES_DIR = f"images_{METRIC_TYPE}/"
+OUTPUT_REPORTS_DIR = "output_reports/"
 
 def run_end_to_end_analysis(quality: str = 'good', grid_size: tuple = (5, 5), show_plots: bool = True):
     """
@@ -42,35 +62,79 @@ def run_end_to_end_analysis(quality: str = 'good', grid_size: tuple = (5, 5), sh
     print("="*70)
     print(f"\nAnalysing {quality} quality waveguide ({grid_size[0]}×{grid_size[1]} grid)\n")
 
+    # Create output directories if they don't exist
+    os.makedirs(OUTPUT_DATA_DIR, exist_ok=True)
+    os.makedirs(OUTPUT_IMAGES_DIR, exist_ok=True)
+    os.makedirs(OUTPUT_REPORTS_DIR, exist_ok=True)
+
     # ============================================================================
     # Step 1: Generate/load data
     # ============================================================================
-    print("STEP 1: Data Generation")
+    print("STEP 1: Data Generation/Loading")
     print("-"*70)
 
     generator = WaveguideDataGenerator(seed=42)
 
-    # Generate measurements
-    positions, spectra, wavelengths = generator.generate_grid(grid_size=grid_size, spatial_extent=(10.0, 10.0), quality=quality)
+    if DATA_SOURCE == "synthetic":
+        # Generate synthetic measurements
+        positions, spectra, wavelengths = generator.generate_grid(grid_size=grid_size, spatial_extent=(10.0, 10.0), quality=quality)
 
-    # Generate dark spectrum for correction
-    dark = generator.generate_dark_spectrum()
+        # Generate dark spectrum for correction
+        dark = generator.generate_dark_spectrum()
 
-    print(f"    Generated {len(positions)} measurements")
-    print(f"    Wavelength range: {wavelengths[0]:.0f}-{wavelengths[-1]:.0f}nm")
-    print(f"    Spectral points: {len(wavelengths)}")
-    print(f"    Mean transmission: {np.mean(spectra):.3f}")
+        print(f"    Generated {len(positions)} synthetic measurements")
+        print(f"    Wavelength range: {wavelengths[0]:.0f}-{wavelengths[-1]:.0f}nm")
+        print(f"    Spectral points: {len(wavelengths)}")
+        print(f"    Mean transmission: {np.mean(spectra):.3f}")
 
-    # Save to file
-    metadata_csv = {
-        "quality": quality,
-        "grid_size": f'{grid_size[0]}x{grid_size[1]}',
-        "generated": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    }
+        # Save to file
+        metadata_csv = {
+            "quality": quality,
+            "grid_size": f'{grid_size[0]}x{grid_size[1]}',
+            "generated": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        }
 
-    csv_filename = f"waveguide_{quality}_{grid_size[0]}x{grid_size[1]}.csv"
-    generator.save_to_csv(positions, spectra, wavelengths, csv_filename, metadata_csv)
-    print(f"    Data saved to {csv_filename}")
+        csv_filename = f"{OUTPUT_DATA_DIR}waveguide_{quality}_{grid_size[0]}x{grid_size[1]}.csv"
+        generator.save_to_csv(positions, spectra, wavelengths, csv_filename, metadata_csv)
+        print(f"    Data saved to {csv_filename}")
+
+    elif DATA_SOURCE == "file":
+        # Load data from CSV file
+        print(f"    Loading data from {CUSTOM_DATA_FILE}")
+        try:
+            positions, wavelengths, spectra = generator.load_from_csv(CUSTOM_DATA_FILE)
+            print(f"    ✓ Loaded {len(positions)} measurement positions")
+            print(f"    ✓ Wavelength range: {wavelengths[0]:.1f} - {wavelengths[-1]:.1f} nm")
+            print(f"    ✓ Spectral resolution: {len(wavelengths)} points")
+
+            # Generate dark spectrum (you may want to load this from file too)
+            dark = generator.generate_dark_spectrum()
+
+            # Create metadata for loaded data
+            metadata_csv = {
+                "source": "file",
+                "filename": CUSTOM_DATA_FILE,
+                "loaded": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "positions": len(positions),
+                "wavelengths": len(wavelengths)
+            }
+
+            csv_filename = CUSTOM_DATA_FILE  # Reference to loaded file
+
+        except FileNotFoundError:
+            print(f"    ❌ ERROR: File '{CUSTOM_DATA_FILE}' not found!")
+            print("    Please ensure your CSV file is in the project directory.")
+            print("    Expected format: position_x_mm, position_y_mm, wl_400.00nm, wl_402.01nm, ...")
+            return None, None, None
+        except Exception as e:
+            print(f"    ❌ ERROR loading data: {e}")
+            print("    Please check your CSV format matches the expected structure.")
+            print("    See README.md for data format requirements.")
+            return None, None, None
+
+    else:
+        print(f"    ❌ ERROR: Invalid DATA_SOURCE '{DATA_SOURCE}'. Use 'synthetic' or 'file'.")
+        return None, None, None
 
     # ===========================================================================
     # Step 2: SETUP ANALYZER WITH METADATA
@@ -228,30 +292,92 @@ def run_end_to_end_analysis(quality: str = 'good', grid_size: tuple = (5, 5), sh
     print("  Generating uniformity heatmap...")
     interpolated_data = analyzer.interpolate_uniformity_map(grid_resolution=(50, 50), parameter='deltaE')
 
-    fig1 = viz.plot_uniformity_heatmap(interpolated_data, spec_limit=spec_limits.max_deltaE_any, title=f'Colour Uniformity Map - {quality.capitalize()} Quality', save_path=f'uniformity_heatmap_{quality}.png')
+    fig1 = viz.plot_uniformity_heatmap(interpolated_data, spec_limit=spec_limits.max_deltaE_any, title=f'Colour Uniformity Map - {quality.capitalize()} Quality', save_path=f'{OUTPUT_IMAGES_DIR}uniformity_heatmap_{quality}.png')
 
     # 7b. DeltaE distribution
     print("  Generating deltaE distribution...")
     spec_dict = {'acceptable': spec_limits.max_deltaE_mean, 'marginal': spec_limits.max_deltaE_any}
 
-    fig2 = viz.plot_deltaE_distribution(metrics['deltaE_values'], spec_limits=spec_dict, title=f'DeltaE Distribution - {quality.capitalize()} Quality', save_path=f'deltaE_distribution_{quality}.png')
+    fig2 = viz.plot_deltaE_distribution(metrics['deltaE_values'], spec_limits=spec_dict, title=f'DeltaE Distribution - {quality.capitalize()} Quality', save_path=f'{OUTPUT_IMAGES_DIR}deltaE_distribution_{quality}.png')
 
     # 7c. Chromaticity diagram
     print("  Creating chromaticity diagram...")
-    fig3 = viz.plot_chromaticity_diagram(grid_data['xy_values'], positions=positions, title=f"Chromaticity Uniformity - {quality.capitalize()} Quality", save_path = f'chromaticity_diagram_{quality}.png')
+    fig3 = viz.plot_chromaticity_diagram(grid_data['xy_values'], positions=positions, title=f"Chromaticity Uniformity - {quality.capitalize()} Quality", save_path = f'{OUTPUT_IMAGES_DIR}chromaticity_diagram_{quality}.png')
 
     # 7d. Spectral plots
     print("  Creating spectral plots...")
-    fig4 = viz.plot_spectral_profile(wavelengths, spectra, positions=positions, title=f"Spectral Measurements - {quality.capitalize()} Quality", save_path=f'spectra_{quality}.png')
+    fig4 = viz.plot_spectral_profile(wavelengths, spectra, positions=positions, title=f"Spectral Measurements - {quality.capitalize()} Quality", save_path=f'{OUTPUT_IMAGES_DIR}spectra_{quality}.png')
 
     # 7e. Complete QC report figure
     print("  Creating QC report...")
-    fig = viz.create_qc_report_figure(metrics, qc_results, grid_data, save_path=f'qc_report_{quality}.png')
+    fig = viz.create_qc_report_figure(metrics, qc_results, grid_data, save_path=f'{OUTPUT_IMAGES_DIR}qc_report_{quality}.png')
 
-    print("✓ All visualization generated")
+    print("✓ All visualizations generated")
 
     # ===========================================================================
-    # Step 8: SUMMARY
+    # Step 8: GENERATE REPORTS
+    # ===========================================================================
+    print("\nSTEP 8: Report Generation")
+    print("-" * 70)
+
+    report_gen = UniformityReportGenerator(
+        company_name="Photonics QC Lab",
+        author=metadata.operator
+    )
+
+    # Prepare visualization paths for PDF
+    vis_paths = {
+        'heatmap': f'{OUTPUT_IMAGES_DIR}uniformity_heatmap_{quality}.png',
+        'distribution': f'{OUTPUT_IMAGES_DIR}deltaE_distribution_{quality}.png',
+        'chromaticity': f'{OUTPUT_IMAGES_DIR}chromaticity_diagram_{quality}.png'
+    }
+
+    # Prepare spec limits dict for reports
+    spec_dict = {
+        'max_deltaE_mean': spec_limits.max_deltaE_mean,
+        'max_deltaE_any': spec_limits.max_deltaE_any,
+        'max_deltaE_std': spec_limits.max_deltaE_std,
+        'chromaticity_tolerance': spec_limits.chromaticity_tolerance
+    }
+
+    # Prepare metadata dict for reports
+    meta_dict = {
+        'device_serial': metadata.device_serial,
+        'operator': metadata.operator,
+        'instrument_model': metadata.instrument_model,
+        'instrument_serial': metadata.instrument_serial,
+        'calibration_date': metadata.calibration_date,
+        'temperature_c': metadata.temperature_c,
+        'humidity_percent': metadata.humidity_percent,
+        'ambient_light_lux': metadata.ambient_light_lux,
+        'notes': metadata.notes
+    }
+
+    # Generate CSV report (analysis results, not raw data)
+    print("  Generating CSV analysis report...")
+    report_gen.generate_csv_report(
+        f'{OUTPUT_REPORTS_DIR}analysis_report_{quality}.csv',
+        metrics,
+        qc_results,
+        meta_dict,
+        spec_dict
+    )
+
+    # Generate PDF report
+    print("  Generating PDF report...")
+    report_gen.generate_pdf_report(
+        f'{OUTPUT_REPORTS_DIR}analysis_report_{quality}.pdf',
+        metrics,
+        qc_results,
+        meta_dict,
+        spec_dict,
+        vis_paths
+    )
+
+    print("✓ All reports generated")
+
+    # ===========================================================================
+    # Step 9: SUMMARY
     # ===========================================================================
     print("\n" + "=" * 70)
     print("ANALYSIS COMPLETE")
@@ -264,12 +390,17 @@ def run_end_to_end_analysis(quality: str = 'good', grid_size: tuple = (5, 5), sh
     print(f"Max deltaE: {metrics['deltaE_max']:.2f} (limit: {spec_limits.max_deltaE_any})")
 
     print(f"\nGenerated files:")
-    print(f"  {csv_filename}")
-    print(f"  uniformity_heatmap_{quality}.png")
-    print(f"  deltaE_distribution_{quality}.png")
-    print(f"  chromaticity_diagram_{quality}.png")
-    print(f"  spectra_{quality}.png")
-    print(f"  qc_report_{quality}.png")
+    print(f"  Data:")
+    print(f"    {csv_filename}")
+    print(f"  Visualizations:")
+    print(f"    {OUTPUT_IMAGES_DIR}uniformity_heatmap_{quality}.png")
+    print(f"    {OUTPUT_IMAGES_DIR}deltaE_distribution_{quality}.png")
+    print(f"    {OUTPUT_IMAGES_DIR}chromaticity_diagram_{quality}.png")
+    print(f"    {OUTPUT_IMAGES_DIR}spectra_{quality}.png")
+    print(f"    {OUTPUT_IMAGES_DIR}qc_report_{quality}.png")
+    print(f"  Reports:")
+    print(f"    {OUTPUT_REPORTS_DIR}analysis_report_{quality}.csv")
+    print(f"    {OUTPUT_REPORTS_DIR}analysis_report_{quality}.pdf")
 
     if show_plots:
         plt.show()
@@ -294,7 +425,7 @@ if __name__ == "__main__":
 
         results, metrics, data = run_end_to_end_analysis(quality=quality, grid_size=(5, 5), show_plots=False)  # set to True to show plots
 
-        input(f"\nPress Enter to continue to next analysis...")
+        # input(f"\nPress Enter to continue to next analysis...")
 
     print("\n" + "=" * 70)
     print("ALL ANALYSIS COMPLETE")

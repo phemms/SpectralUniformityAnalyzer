@@ -194,16 +194,14 @@ class UniformityAnalyzer:
         else:
             Lab_ref = np.mean(Lab_values, axis=0)
 
-        # Calculate deltaE for each position
+        # Calculate CIEDE2000 for each position
         deltaE_values = np.array([
-            self.converter.calculate_deltaE_ab(Lab_values[i], Lab_ref)
-            for i in range(len(Lab_values))
-        ])
-
-        deltaE00_values = np.array([
             self.converter.calculate_deltaE_00(Lab_values[i], Lab_ref)
             for i in range(len(Lab_values))
         ])
+
+        # For backward compatibility, also store as deltaE00_values
+        deltaE00_values = deltaE_values
 
         # Calculate chromatic deviations
         xy_ref = self.converter.XYZ_to_xy(self.grid_data['XYZ_values'][0])
@@ -214,16 +212,16 @@ class UniformityAnalyzer:
 
         # Statistical metrics
         metrics = {
-            # deltaE statistics
-            'deltaE_mean': np.mean(deltaE_values),
-            'deltaE_std': np.std(deltaE_values),
-            'deltaE_min': np.min(deltaE_values),
-            'deltaE_max': np.max(deltaE_values),
-            'deltaE_median': np.median(deltaE_values),
-            'deltaE_values': deltaE_values,
+            # CIEDE2000 statistics (primary metric)
+            'deltaE_mean': np.mean(deltaE00_values),
+            'deltaE_std': np.std(deltaE00_values),
+            'deltaE_min': np.min(deltaE00_values),
+            'deltaE_max': np.max(deltaE00_values),
+            'deltaE_median': np.median(deltaE00_values),
+            'deltaE_values': deltaE00_values,
 
 
-            # deltaE00 statistics
+            # deltaE00 statistics (duplicate for backward compatibility)
             'deltaE00_mean': np.mean(deltaE00_values),
             'deltaE00_std': np.std(deltaE00_values),
             'deltaE00_max': np.max(deltaE00_values),
@@ -344,7 +342,7 @@ class UniformityAnalyzer:
 
         # Calculate deltaE between each measurement and mean
         deltaE_from_mean = [
-            self.converter.calculate_deltaE_ab(Lab_repeats[i], Lab_mean)
+            self.converter.calculate_deltaE_00(Lab_repeats[i], Lab_mean)
             for i in range(n_repeats)
         ]
 

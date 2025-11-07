@@ -49,9 +49,13 @@ htmlcov/
 *.tmp
 .cache/
 
-# Keep example outputs but ignore test outputs
-# Uncomment the lines below if you don't want to commit generated images
+# Generated outputs (uncomment to ignore)
 # *.png
 # *.csv
 # *.pdf
+
+# Sample outputs (keep for demonstration)
+# images_deltaEab/    # Uncomment to ignore ΔE*ab samples
+# images_cie2000/    # Uncomment to ignore CIEDE2000 samples
+# output_reports/     # Uncomment to ignore report samples
 

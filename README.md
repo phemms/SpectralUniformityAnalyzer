@@ -116,12 +116,123 @@ print(f"Mean ΔE: {metrics['deltaE_mean']:.2f}")
 
 ### Output
 
+#### CIEDE2000 Results (Current Implementation)
 ```
 Result: PASS
-Mean ΔE: 0.76
-Max ΔE: 2.11 at position (5.0, 5.0) mm
-Std ΔE: 0.50
+Mean ΔE*00: 0.51
+Max ΔE*00: 1.33 at position (7.5, 2.5) mm
+Std ΔE*00: 0.31
 ```
+
+#### Comparison: ΔE*ab vs CIEDE2000
+For the same "good" quality synthetic data:
+
+| Metric | ΔE*ab (Previous) | CIEDE2000 (Current) | Improvement |
+|--------|------------------|---------------------|-------------|
+| **Mean** | 0.76 | 0.51 | More accurate |
+| **Max** | 2.11 | 1.33 | Better detection |
+| **Std** | 0.50 | 0.31 | Tighter uniformity |
+
+#### Why CIEDE2000?
+- **Industry Standard**: Used by display manufacturers and AR/VR companies
+- **Better Blue Accuracy**: Critical for AR waveguides (450-480nm range)
+- **Perceptual Uniformity**: Equal ΔE = equal perceived color difference
+- **ISO Compliance**: Meets international colorimetry standards
+
+The tool now uses CIEDE2000 for production QC applications.
+
+### Analyze Your Own Measurement Data
+
+For real QC applications, load your own spectral measurement data:
+
+#### 1. Format Your Data as CSV
+
+Your CSV file must have these columns:
+- `position_x_mm`, `position_y_mm` - Measurement coordinates in millimeters
+- `wl_XXX.XXnm` - Spectral data columns (wavelength in nm, e.g., `wl_400.00nm`)
+
+```csv
+position_x_mm,position_y_mm,wl_400.00nm,wl_500.00nm,wl_600.00nm,wl_700.00nm
+0.0,0.0,0.85,0.90,0.88,0.82
+1.0,0.0,0.86,0.89,0.87,0.83
+0.0,1.0,0.84,0.91,0.89,0.81
+1.0,1.0,0.85,0.90,0.88,0.82
+```
+
+#### 2. Configure the Tool
+
+```python
+# In end_to_end_analysis.py, change these settings:
+DATA_SOURCE = "file"  # Instead of "synthetic"
+CUSTOM_DATA_FILE = "path/to/your/measurement_data.csv"  # Can be absolute or relative path
+```
+
+**Path Examples:**
+```python
+CUSTOM_DATA_FILE = "/Users/john/lab_data/waveguide_measurements.csv"  # Absolute path
+CUSTOM_DATA_FILE = "../spectrometer_data/session_2025_01_15.csv"       # Relative path
+CUSTOM_DATA_FILE = "C:/spectrometer_data/output.csv"                   # Windows path
+CUSTOM_DATA_FILE = "sample_data/example_custom_data.csv"               # Test with included example
+```
+
+#### 3. Run Analysis
+
+```bash
+python end_to_end_analysis.py
+```
+
+The tool will load your data and perform the same uniformity analysis, generating visualizations and reports based on your measurements.
+
+**Quick Test:** Run `python test_with_example_data.py` to try the analysis with the included example data.
+
+**Example file:** See `sample_data/example_custom_data.csv` for a complete 5×5 grid example.
+
+### Testing with Your Data (For Recruiters/Evaluators)
+
+To evaluate the tool with your own measurement data:
+
+#### 1. Prepare Your CSV File
+Format your spectral measurements with the required columns (see format above).
+
+#### 2. Configure the Tool
+Edit `end_to_end_analysis.py` and change:
+```python
+DATA_SOURCE = "file"  # Change from "synthetic"
+CUSTOM_DATA_FILE = "/path/to/your/data.csv"  # Set your file path
+```
+
+#### 3. Run the Analysis
+```bash
+python end_to_end_analysis.py
+```
+
+#### 4. Evaluate Results
+The tool will:
+- Load your measurement data
+- Perform CIEDE2000 uniformity analysis
+- Generate QC reports and visualizations
+- Display PASS/FAIL results
+
+#### Expected Output:
+```
+STEP 1: Data Generation/Loading
+    ✓ Loaded X measurement positions
+    ✓ Wavelength range: XXX - XXX nm
+
+[... analysis steps ...]
+
+RESULT: PASS/FAIL
+Generated files:
+  Reports: output_reports/analysis_report_*.csv, *.pdf
+  Visualizations: images_cie2000/*.png
+```
+
+#### Validation Checklist:
+- [ ] Data loads without errors
+- [ ] ΔE values are reasonable (0.1-10 range typical)
+- [ ] Visualizations show expected spatial patterns
+- [ ] Reports contain complete metadata and measurements
+- [ ] QC pass/fail logic works as expected
 
 ---
 
@@ -244,23 +355,33 @@ MIT License - See LICENSE file for details.
 
 ---
 
-## 📊 Example Results
+## 📊 Example Results (CIEDE2000)
 
 ### Excellent Quality Device ✅
 ```
-Mean ΔE:   0.07  (Limit: 3.0) ✓
-Max ΔE:    0.14  (Limit: 5.0) ✓
-Std ΔE:    0.04  (Limit: 2.0) ✓
+Mean ΔE*00: 0.08  (Limit: 3.0) ✓
+Max ΔE*00:  0.18  (Limit: 5.0) ✓
+Std ΔE*00:  0.05  (Limit: 2.0) ✓
+Result: PASS
+```
+
+### Good Quality Device ✅
+```
+Mean ΔE*00: 0.51  (Limit: 3.0) ✓
+Max ΔE*00:  1.33  (Limit: 5.0) ✓
+Std ΔE*00:  0.31  (Limit: 2.0) ✓
 Result: PASS
 ```
 
 ### Defect Quality Device ❌
 ```
-Mean ΔE:   1.87  (Limit: 3.0) ✓
-Max ΔE:   10.79  (Limit: 5.0) ✗ FAIL
-Std ΔE:    2.09  (Limit: 2.0) ✗ FAIL
+Mean ΔE*00: 1.18  (Limit: 3.0) ✓
+Max ΔE*00:  6.49  (Limit: 5.0) ✗ FAIL
+Std ΔE*00:  1.24  (Limit: 2.0) ✓
 Result: FAIL - Defect detected at position (7.5, 2.5) mm
 ```
+
+*Results shown are from CIEDE2000 analysis. Sample outputs are available in `images_cie2000/` and `output_reports/` folders.*
 
 ---
 

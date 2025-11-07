@@ -1,0 +1,36 @@
+# Color Uniformity Analysis Report
+# Generated: 2025-11-07 16:52:45
+# Author: Olufemi Balogun
+#
+# Measurement Information:
+# Device Serial: WAVEGUIDE-DEFECT-001
+# Operator: Olufemi Balogun
+# Instrument: Minolta CS-2000
+# Instrument Serial: Cs2000-12345
+# Calibration Date: 2025-10-15
+# Temperature: 23.5 °C
+# Humidity: 45.0 %
+#
+# QC Result: FAIL
+#
+# Uniformity Metrics:
+# Mean ΔE*00: 1.18 (Spec: < 3.0)
+# Max ΔE*00: 6.49 (Spec: < 5.0)
+# Std Dev ΔE*00: 1.24 (Spec: < 2.0)
+# Median ΔE*00: 0.82
+#
+# Color Statistics (CIELAB):
+# L* (Lightness): 100.9 ± 2.6
+# a* (Red-Green): -0.02 ± 0.16
+# b* (Yellow-Blue): -0.45 ± 0.26
+#
+# Chromaticity Uniformity:
+# Mean xy Deviation: 0.0011
+# Max xy Deviation: 0.0024
+#
+# Failures:
+# - Max deltaE (6.49) at position [7.5 2.5] exceeds limit (5.00)
+#
+# Worst Position: (7.5, 2.5) mm with ΔE = 6.49
+#
+# Detailed measurement data available in separate data CSV file
