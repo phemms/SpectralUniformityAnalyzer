@@ -1,5 +1,5 @@
 # Color Uniformity Analysis Report
-# Generated: 2025-11-07 16:52:45
+# Generated: 2025-11-10 15:33:50
 # Author: Olufemi Balogun
 #
 # Measurement Information:
@@ -14,10 +14,10 @@
 # QC Result: FAIL
 #
 # Uniformity Metrics:
-# Mean ΔE*00: 1.18 (Spec: < 3.0)
-# Max ΔE*00: 6.49 (Spec: < 5.0)
-# Std Dev ΔE*00: 1.24 (Spec: < 2.0)
-# Median ΔE*00: 0.82
+# Mean ΔE*00: 1.87 (Spec: < 3.0)
+# Max ΔE*00: 10.79 (Spec: < 5.0)
+# Std Dev ΔE*00: 2.09 (Spec: < 2.0)
+# Median ΔE*00: 1.30
 #
 # Color Statistics (CIELAB):
 # L* (Lightness): 100.9 ± 2.6
@@ -29,8 +29,9 @@
 # Max xy Deviation: 0.0024
 #
 # Failures:
-# - Max deltaE (6.49) at position [7.5 2.5] exceeds limit (5.00)
+# - Max deltaE (10.79) at position [7.5 2.5] exceeds limit (5.00)
+# - DeltaE std deviation (2.09) exceeds limit (2.00)
 #
-# Worst Position: (7.5, 2.5) mm with ΔE = 6.49
+# Worst Position: (7.5, 2.5) mm with ΔE = 10.79
 #
 # Detailed measurement data available in separate data CSV file

@@ -91,15 +91,17 @@ class UniformityAnalyzer:
     - Repeatability testing
     """
 
-    def __init__(self, metadata: Optional[MeasurementMetadata] = None, spec_limits: Optional[SpecLimits] = None):
+    def __init__(self, metadata: Optional[MeasurementMetadata] = None, spec_limits: Optional[SpecLimits] = None, metric_type: str = "cie2000"):
         """
         Initialize the analyzer
         :param metadata:
         :param spec_limits:
+        :param metric_type: Color difference metric: "deltaEab" or "cie2000"
         """
         self.converter = ColorConverter()
         self.metadata = metadata if metadata else MeasurementMetadata()
         self.spec_limits = spec_limits if spec_limits else SpecLimits()
+        self.metric_type = metric_type
 
         # Storage for analysis results
         self.grid_data = None
@@ -194,11 +196,17 @@ class UniformityAnalyzer:
         else:
             Lab_ref = np.mean(Lab_values, axis=0)
 
-        # Calculate CIEDE2000 for each position
-        deltaE_values = np.array([
-            self.converter.calculate_deltaE_00(Lab_values[i], Lab_ref)
-            for i in range(len(Lab_values))
-        ])
+        # Calculate color difference based on metric type
+        if self.metric_type == "deltaEab":
+            deltaE_values = np.array([
+                self.converter.calculate_deltaE_ab(Lab_values[i], Lab_ref)
+                for i in range(len(Lab_values))
+            ])
+        else:  # "cie2000" or default
+            deltaE_values = np.array([
+                self.converter.calculate_deltaE_00(Lab_values[i], Lab_ref)
+                for i in range(len(Lab_values))
+            ])
 
         # For backward compatibility, also store as deltaE00_values
         deltaE00_values = deltaE_values
@@ -341,10 +349,16 @@ class UniformityAnalyzer:
         Lab_std = np.std(Lab_array, axis=0)
 
         # Calculate deltaE between each measurement and mean
-        deltaE_from_mean = [
-            self.converter.calculate_deltaE_00(Lab_repeats[i], Lab_mean)
-            for i in range(n_repeats)
-        ]
+        if self.metric_type == "deltaEab":
+            deltaE_from_mean = [
+                self.converter.calculate_deltaE_ab(Lab_repeats[i], Lab_mean)
+                for i in range(n_repeats)
+            ]
+        else:  # "cie2000" or default
+            deltaE_from_mean = [
+                self.converter.calculate_deltaE_00(Lab_repeats[i], Lab_mean)
+                for i in range(n_repeats)
+            ]
 
         repeatability_stats = {
             'n_repeats': n_repeats,

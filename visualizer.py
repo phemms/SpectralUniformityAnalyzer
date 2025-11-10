@@ -129,8 +129,8 @@ class UniformityVisualizer:
 
         ax.plot(mean_xy[0], mean_xy[1], 'k*', markersize=20, label=f'Mean: {mean_xy[0]:.4f}, {mean_xy[1]:.4f}', zorder=6)
 
-        # Draw 2-sigma ellipse
-        ellipse = patches.Ellipse(mean_xy, width=4*std_xy[0], height=2*std_xy[1], fill=False, edgecolor='red', linewidth=2, linestyle='--', label='2-sigma boundary', zorder=6)
+        # Draw 2-sigma ellipse (symmetric boundary)
+        ellipse = patches.Ellipse(mean_xy, width=4*std_xy[0], height=4*std_xy[1], fill=False, edgecolor='red', linewidth=2, linestyle='--', label='2-sigma boundary', zorder=6)
         ax.add_patch(ellipse)
 
         ax.set_xlabel('x', fontweight='bold', fontsize=12)
@@ -254,7 +254,23 @@ class UniformityVisualizer:
         stats_text += f"Min: {np.min(deltaE_values):.2f}\n"
         stats_text += f"Max: {np.max(deltaE_values):.2f}\n"
 
-        ax2.text(1.3, np.max(deltaE_values), stats_text, bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5), verticalalignment='top')
+        # Position stats box between spec limits (or centered if limits unavailable)
+        x_min, x_max = ax2.get_xlim()
+        y_min, y_max = ax2.get_ylim()
+        y_pos = y_max - 0.05 * (y_max - y_min)
+
+        if spec_limits and spec_limits.get('acceptable') is not None and spec_limits.get('marginal') is not None:
+            acceptable_limit = spec_limits['acceptable']
+            marginal_limit = spec_limits['marginal']
+            x_pos = acceptable_limit + 0.5 * (marginal_limit - acceptable_limit)
+            # Keep inside plot bounds with small padding
+            padding = 0.05 * (x_max - x_min)
+            x_pos = np.clip(x_pos, x_min + padding, x_max - padding)
+        else:
+            x_pos = x_min + 0.5 * (x_max - x_min)
+
+        ax2.text(x_pos, y_pos, stats_text, bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5),
+                 verticalalignment='top', horizontalalignment='center')
 
         ax2.set_ylabel('Delta E*ab', fontweight='bold')
         ax2.set_title('Box Plot', fontweight='bold')

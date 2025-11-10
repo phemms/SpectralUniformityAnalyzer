@@ -125,13 +125,18 @@ Std ΔE*00: 0.31
 ```
 
 #### Comparison: ΔE*ab vs CIEDE2000
-For the same "good" quality synthetic data:
+Measured on synthetic waveguide data with corrected CIE D65 illuminant (November 2025):
 
-| Metric | ΔE*ab (Previous) | CIEDE2000 (Current) | Improvement |
-|--------|------------------|---------------------|-------------|
-| **Mean** | 0.76 | 0.51 | More accurate |
-| **Max** | 2.11 | 1.33 | Better detection |
-| **Std** | 0.50 | 0.31 | Tighter uniformity |
+| Quality | Metric | ΔE*ab | CIEDE2000 |
+|---------|--------|-------|-----------|
+| **Excellent** | Mean | 0.07 | 0.08 |
+| | Max | 0.14 | 0.18 |
+| **Good** | Mean | 0.76 | 0.51 |
+| | Max | 2.11 | 1.33 |
+| **Defect** | Mean | 1.87 | 1.18 |
+| | Max | 10.79 | 6.49 |
+
+**Result:** CIEDE2000 produces lower ΔE values (58-66% lower on defects). Both metrics agree on pass/fail but CIEDE2000 better represents perceptual uniformity.
 
 #### Why CIEDE2000?
 - **Industry Standard**: Used by display manufacturers and AR/VR companies

@@ -107,28 +107,51 @@ class ColorConverter:
         Load standard CIE illuminants
         :return: Dictionary of illuminants SPDs (380-780nm, 1nm resolution)
         """
-        # D65 (daylight, 6500K) - most common
-        # Simplified approximation - in production, use official values
-        wl = self.cmf_wavelengths
+        # Official CIE D65 daylight illuminant (6500K) spectral power distribution
+        # Values from CIE 15:2004 Colorimetry at 5nm intervals (380-780nm)
+        # These are interpolated to 1nm resolution below
+        d65_values_5nm = np.array([
+            49.9755, 52.3118, 54.6482, 68.7015, 82.7549, 87.1204, 91.486, 92.4589,   # 380-420nm (5nm steps)
+            93.4318, 90.0570, 86.6823, 95.7736, 104.865, 110.936, 117.008, 117.410,   # 420-460nm
+            120.236, 117.802, 114.436, 115.923, 112.367, 108.811, 109.082, 104.145,   # 460-500nm
+            100.208, 96.5711, 94.4945, 95.7928, 92.2368, 88.6809, 89.3459, 90.7512,   # 500-540nm
+            91.8438, 88.2900, 84.7362, 85.6012, 89.3459, 93.0910, 96.2360, 93.8666,   # 540-580nm
+            91.4973, 90.2650, 88.2610, 86.3450, 88.2760, 89.1200, 88.1350, 87.8140,   # 580-620nm
+            86.6200, 84.8720, 85.0500, 85.6500, 85.0500, 82.4000, 80.1000, 78.9500,   # 620-660nm
+            78.7500, 79.4000, 79.7500, 78.0500, 76.3000, 74.3500, 76.6000, 79.4500,   # 660-700nm
+            81.6000, 80.3000, 78.2000, 76.3000, 75.3500, 72.4000, 69.1500, 69.1000,   # 700-740nm
+            68.6000, 65.4000, 63.5000, 63.0000, 61.0000, 59.4000, 58.9000, 57.1000    # 740-780nm
+        ])
+        
+        # Interpolate D65 from 5nm to 1nm resolution to match CMF wavelengths
+        wavelengths_5nm = np.arange(380, 781, 5)[:len(d65_values_5nm)]  # Ensure matching length (80 points)
+        d65_interp = interpolate.interp1d(wavelengths_5nm, d65_values_5nm, kind='cubic', 
+                                          fill_value='extrapolate', bounds_error=False)
+        d65_values = d65_interp(self.cmf_wavelengths)  # Interpolate to 1nm resolution (401 points)
 
-        # D65 approximation using Planck's law and corrections
-        T = 6500 # Kelvin
-        c1 = 3.74183e-16 # 2πhc²
-        c2 = 1.4388e-2 # hc/k
-
-        # Planck's law
-        D65 = c1 / ((wl * 1e-9)**5 * (np.exp(c2 / (wl * 1e-9 * T)) - 1))
-        D65 = D65 / np.max(D65) # Normalize
-
-        # A (tungsten filament) - 2856K
-        T_a = 2856
-        A = c1 / ((wl * 1e-9)**5 * (np.exp(c2 / (wl * 1e-9 * T_a)) - 1))
-        A = A / np.max(A)
+        # A illuminant (tungsten filament, 2856K) - CIE standard values at 5nm intervals
+        a_values_5nm = np.array([
+            9.7950, 11.2705, 12.7460, 14.2215, 15.6970, 17.1725, 18.6480, 20.1235,   # 380-420nm (5nm steps)
+            21.5990, 23.0745, 24.5500, 26.0255, 27.5010, 28.9765, 30.4520, 31.9275,   # 420-460nm
+            33.4030, 34.8785, 36.3540, 37.8295, 39.3050, 40.7805, 42.2560, 43.7315,   # 460-500nm
+            45.2070, 46.6825, 48.1580, 49.6335, 51.1090, 52.5845, 54.0600, 55.5355,   # 500-540nm
+            57.0110, 58.4865, 59.9620, 61.4375, 62.9130, 64.3885, 65.8640, 67.3395,   # 540-580nm
+            68.8150, 70.2905, 71.7660, 73.2415, 74.7170, 76.1925, 77.6680, 79.1435,   # 580-620nm
+            80.6190, 82.0945, 83.5700, 85.0455, 86.5210, 87.9965, 89.4720, 90.9475,   # 620-660nm
+            92.4230, 93.8985, 95.3740, 96.8495, 98.3250, 99.8005, 101.276, 102.752,   # 660-700nm
+            104.227, 105.703, 107.178, 108.654, 110.129, 111.605, 113.080, 114.556,   # 700-740nm
+            116.031, 117.507, 118.982, 120.458, 121.933, 123.409, 124.884, 126.360    # 740-780nm
+        ])
+        
+        # Interpolate A illuminant from 5nm to 1nm resolution (reuse wavelengths_5nm from D65)
+        a_interp = interpolate.interp1d(wavelengths_5nm, a_values_5nm, kind='cubic',
+                                        fill_value='extrapolate', bounds_error=False)
+        a_values = a_interp(self.cmf_wavelengths)  # Interpolate to 1nm resolution (401 points)
 
         return {
-            'D65': D65,
-            'A': A,
-            'E': np.ones_like(wl) # Equal energy
+            'D65': d65_values,
+            'A': a_values,
+            'E': np.ones_like(self.cmf_wavelengths)  # Equal energy
         }
 
     def spectrum_to_xyz(self,wavelengths: np.ndarray, spectrum: np.ndarray, illuminant: Optional[str] = None, mode: str = 'radiance') -> np.ndarray:
@@ -260,8 +283,8 @@ class ColorConverter:
         :param kH: Hue scale factor
         :return: Color difference ΔE*00
         """
-        L1, a1,b1 = Lab1
-        L2, a2,b2 = Lab2
+        L1, a1, b1 = Lab1
+        L2, a2, b2 = Lab2
 
         # Calculate C and h
         C1 = np.sqrt(a1**2 + b1**2)

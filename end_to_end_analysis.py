@@ -33,7 +33,7 @@ from visualizer import UniformityVisualizer
 from report_generator import UniformityReportGenerator
 
 # Configuration - Metric selection and output directories
-METRIC_TYPE = "cie2000"  # Options: "deltaEab" or "cie2000" (currently using CIEDE2000)
+METRIC_TYPE = "deltaEab"  # Options: "deltaEab" or "cie2000" (currently using CIEDE2000)
 
 # Data source configuration
 DATA_SOURCE = "synthetic"  # Options: "synthetic" or "file"
@@ -166,7 +166,7 @@ def run_end_to_end_analysis(quality: str = 'good', grid_size: tuple = (5, 5), sh
     )
 
     # Initialize analyzer
-    analyzer = UniformityAnalyzer(metadata=metadata, spec_limits=spec_limits)
+    analyzer = UniformityAnalyzer(metadata=metadata, spec_limits=spec_limits, metric_type=METRIC_TYPE)
 
     print("    Analyzer configured with device metadata")
     print(f"    Operator: {metadata.operator}")
