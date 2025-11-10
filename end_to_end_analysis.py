@@ -33,7 +33,7 @@ from visualizer import UniformityVisualizer
 from report_generator import UniformityReportGenerator
 
 # Configuration - Metric selection and output directories
-METRIC_TYPE = "deltaEab"  # Options: "deltaEab" or "cie2000" (currently using CIEDE2000)
+METRIC_TYPE = "cie2000"  # Options: "deltaEab" or "cie2000" (currently using CIEDE2000)
 
 # Data source configuration
 DATA_SOURCE = "synthetic"  # Options: "synthetic" or "file"
